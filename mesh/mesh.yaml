@@ -42,6 +42,34 @@ descriptors:
         volumes:
           - rocksdb:/var/lib/rocksdb
 
+  external-references-rewriter:
+    type: processing
+    containers:
+      processor:
+        image: ghcr.io/streamx-com/streamx-blueprints/external-references-rewriter:3.0.14-native
+        incoming:
+          incoming-resources: {}
+        outgoing:
+          outgoing-resources: {}
+          download-requests: {}
+
+  resource-downloader:
+    type: processing
+    volumes:
+      rocksdb:
+        size: 5Gi
+    containers:
+      processor:
+        image: ghcr.io/streamx-com/streamx-blueprints/resource-downloader:3.0.14-native
+        incoming:
+          download-requests: {}
+        outgoing:
+          downloaded-pages: {}
+          downloaded-assets: {}
+          downloaded-web-resources: {}
+        volumes:
+          - rocksdb:/var/lib/rocksdb
+
   json-aggregator:
     type: processing
     volumes:
@@ -188,14 +216,14 @@ descriptors:
     type: edge
     volumes:
       opensearch-data:
-        size: 10Gi
+        size: 20Gi
         persistent: true
       rocksdb:
-        size: 5Gi
+        size: 20Gi
         persistent: true
     containers:
       sink:
-        image: ghcr.io/streamx-com/streamx-blueprints/opensearch-sink:3.0.14-native
+        image: ghcr.io/streamx-com/streamx-blueprints/opensearch-sink:3.0.11-native
         incoming:
           indexable-resources:
             initState: delta
@@ -228,7 +256,7 @@ descriptors:
     type: edge
     volumes:
       repository-volume:
-        size: 10Gi
+        size: 20Gi
         persistent: true
     containers:
       sink:
@@ -371,38 +399,6 @@ ingestion:
           STREAMX_SOURCES_CMS_ACCEPT_IAT_FROM: "1704067200"
 
 processing:
-  incoming-pages-relay:
-    descriptor: relay
-    containers:
-      service:
-        incoming:
-          events:
-            ref: inbox.pages
-        outgoing:
-          relayed-events:
-            ref: relay.pages
-  pages-relay:
-    descriptor: relay
-    containers:
-      service:
-        incoming:
-          events:
-            ref: relay.pages
-        outgoing:
-          relayed-events:
-            ref: outbox.pages
-
-  web-resources-relay:
-    descriptor: relay
-    containers:
-      service:
-        incoming:
-          events:
-            ref: inbox.web-resources
-        outgoing:
-          relayed-events:
-            ref: outbox.web-resources
-
   assets-relay:
     descriptor: relay
     containers:
@@ -461,11 +457,73 @@ processing:
             ref: relay.optimized-assets
         outgoing:
           adjusted-pages:
-            ref: relay.pages
+            ref: outbox.pages
         environmentFrom:
           configs:
             - pages-optimized-img-rewriter.properties
 
+  eds-pages-ext-ref-rewriter:
+    descriptor: external-references-rewriter
+    containers:
+      processor:
+        incoming:
+          incoming-resources:
+            ref: inbox.pages
+        outgoing:
+          outgoing-resources:
+            ref: relay.composed-pages
+          download-requests:
+            ref: relay.download-requests
+        environmentFrom:
+          configs:
+            - external-references-rewriter.pages.properties
+
+  eds-web-resources-ext-ref-rewriter:
+    descriptor: external-references-rewriter
+    containers:
+      processor:
+        incoming:
+          incoming-resources:
+            ref: inbox.web-resources
+        outgoing:
+          outgoing-resources:
+            ref: outbox.web-resources
+          download-requests:
+            ref: relay.download-requests
+        environmentFrom:
+          configs:
+            - external-references-rewriter.web-resources.properties
+
+  commerce-data-ext-ref-rewriter:
+    descriptor: external-references-rewriter
+    containers:
+      processor:
+        incoming:
+          incoming-resources:
+            ref: inbox.data
+        outgoing:
+          outgoing-resources:
+            ref: relay.data
+          download-requests:
+            ref: relay.download-requests
+        environmentFrom:
+          configs:
+            - external-references-rewriter.data.properties
+
+  resource-downloader:
+    descriptor: resource-downloader
+    containers:
+      processor:
+        incoming:
+          download-requests:
+            ref: relay.download-requests
+        outgoing:
+          downloaded-pages:
+            ref: inbox.pages
+          downloaded-assets:
+            ref: inbox.assets
+          downloaded-web-resources:
+            ref: inbox.web-resources
 
   json-aggregator:
     descriptor: json-aggregator
@@ -473,9 +531,9 @@ processing:
       processor:
         incoming:
           data:
-            ref: inbox.data
+            ref: relay.data
           multivalued-data:
-            ref: inbox.data
+            ref: relay.data
         outgoing:
           aggregated-data:
             ref: relay.aggregated-data
@@ -548,7 +606,7 @@ processing:
       processor:
         incoming:
           incoming-pages:
-            ref: relay.pages
+            ref: relay.composed-pages
         outgoing:
           outgoing-sitemaps:
             ref: outbox.web-resources
@@ -562,7 +620,7 @@ processing:
       processor:
         incoming:
           pages:
-            ref: relay.pages
+            ref: relay.composed-pages
           fragments:
             ref: relay.fragments
         outgoing:
