@@ -29,7 +29,7 @@ cat <<EOF > "$TEMP_STREAM_FILE"
 }
 EOF
 
-export QUARKUS_PROFILE=pim && streamx publish stream "$TEMP_STREAM_FILE"
+export streamx publish stream "$TEMP_STREAM_FILE"
 
 rm -f "$TEMP_STREAM_FILE"
 

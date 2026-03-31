@@ -1,4 +1,4 @@
-# PureSight Demo (StreamX-based)
+# PureSight Demo
 
 This repository provides the **PureSight Demo**, a showcase e-commerce experience built on **StreamX**, designed to demonstrate the platform’s capabilities in real-world scenarios.
 
