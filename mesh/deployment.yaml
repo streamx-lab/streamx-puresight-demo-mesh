@@ -22,25 +22,6 @@ defaults:
 edge:
   web-server-sink:
     stateful: true
-    probes:
-      readiness:
-        httpGet:
-          path: /q/health/ready
-          port: 8080
-        initialDelaySeconds: 3
-        timeoutSeconds: 2
-        periodSeconds: 5
-        successThreshold: 1
-        failureThreshold: 3
-      startup:
-        httpGet:
-          path: /q/health/started
-          port: 8080
-        initialDelaySeconds: 10
-        timeoutSeconds: 2
-        periodSeconds: 10
-        successThreshold: 1
-        failureThreshold: 10
     containers:
       webserver:
         probes:
@@ -76,25 +57,6 @@ edge:
             failureThreshold: 3
   search-sink:
     stateful: true
-    probes:
-      readiness:
-        httpGet:
-          path: /q/health/ready
-          port: 8080
-        initialDelaySeconds: 3
-        timeoutSeconds: 2
-        periodSeconds: 5
-        successThreshold: 1
-        failureThreshold: 3
-      startup:
-        httpGet:
-          path: /q/health/started
-          port: 8080
-        initialDelaySeconds: 10
-        timeoutSeconds: 2
-        periodSeconds: 10
-        successThreshold: 1
-        failureThreshold: 10
     containers:
       opensearch:
         sidecar: true
