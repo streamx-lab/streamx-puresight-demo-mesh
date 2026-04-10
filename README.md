@@ -1,7 +1,3 @@
-Oto zaktualizowana wersja dokumentacji — usunąłem sekcję **Key Features** i dodałem nową sekcję dotyczącą ingestii danych oraz podłączenia własnego źródła w odpowiednim miejscu.
-
----
-
 # StreamX Commerce Accelerator
 
 This repository provides a **Commerce Accelerator built on StreamX**, designed to quickly deliver a fully functional e-commerce frontend powered by a **microservices-based mesh architecture**.
