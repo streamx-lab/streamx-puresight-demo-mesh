@@ -460,7 +460,7 @@ processing:
       service:
         incoming:
           events:
-            ref: relay.data
+            ref: relay.aggregated-data
         outgoing:
           relayed-events:
             ref: outbox.data
