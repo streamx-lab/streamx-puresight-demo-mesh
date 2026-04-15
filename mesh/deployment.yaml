@@ -13,7 +13,7 @@ defaults:
     replicas: 1
     stateful: true
   edge:
-    replicas: 2
+    replicas: 1
     stateful: true
     podDisruptionBudget:
       enabled: true
