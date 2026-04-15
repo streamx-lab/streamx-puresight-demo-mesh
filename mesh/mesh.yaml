@@ -454,6 +454,17 @@ processing:
           relayed-events:
             ref: relay.fragments
 
+  data-relay:
+    descriptor: relay
+    containers:
+      service:
+        incoming:
+          events:
+            ref: relay.data
+        outgoing:
+          relayed-events:
+            ref: outbox.data
+
   outbox-fragments-relay:
     descriptor: relay
     containers:
@@ -720,7 +731,7 @@ edge:
       sink:
         incoming:
           resources:
-            ref: relay.data
+            ref: outbox.data
         environment:
           QUARKUS_LOG_LEVEL: TRACE
           QUARKUS_LOG_MIN_LEVEL: TRACE
