@@ -280,7 +280,7 @@ descriptors:
   openai-rag-sink:
     type: edge
     volumes:
-      pgdata:
+      pgvolume:
         size: 20Gi
         persistent: true
     containers:
