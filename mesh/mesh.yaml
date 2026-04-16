@@ -60,7 +60,7 @@ descriptors:
         size: 5Gi
     containers:
       processor:
-        image: ghcr.io/streamx-com/streamx-blueprints/resource-downloader:3.0.17-SNAPSHOT-jvm
+        image: ghcr.io/streamx-com/streamx-blueprints/resource-downloader:3.0.17-native
         incoming:
           download-requests: {}
         outgoing:
@@ -77,7 +77,7 @@ descriptors:
         size: 5Gi
     containers:
       processor:
-        image: ghcr.io/streamx-com/streamx-blueprints/json-aggregator:3.0.17-SNAPSHOT-jvm
+        image: ghcr.io/streamx-com/streamx-blueprints/json-aggregator:3.0.17-native
         incoming:
           data: {}
           multivalued-data: {}
