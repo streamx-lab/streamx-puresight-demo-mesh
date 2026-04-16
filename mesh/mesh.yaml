@@ -739,7 +739,7 @@ edge:
         environmentFrom:
           secrets:
             - encrypted/open-ai-rag.properties
-            - encypted/open-ai-rag-postgres-creds.properties
+            - encrypted/open-ai-rag-postgres-creds.properties
           configs:
             - open-ai-rag.properties
       postgres:
