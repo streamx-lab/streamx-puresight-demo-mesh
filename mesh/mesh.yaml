@@ -295,8 +295,10 @@ descriptors:
         image: pgvector/pgvector:pg17
         servicePorts:
           - 5432:5432
+        environment:
+          PGDATA: /data/rag-postgres/pgdata
         volumes:
-          - pgdata:/data/rag-postgres
+          - pgvolume:/data/rag-postgres
 
 networking:
   httpRoutes:
