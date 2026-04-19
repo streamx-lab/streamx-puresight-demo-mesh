@@ -294,7 +294,7 @@ descriptors:
         servicePorts:
           - 8085:8080
       postgres:
-        image: pgvector/pgvector:pg17
+        image: registry.prod-ext.streamx.cloud/streamx-docker-hub-public-proxy/pgvector/pgvector:pg17
         servicePorts:
           - 5432:5432
         environment:
