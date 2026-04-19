@@ -17,7 +17,7 @@ descriptors:
     type: processing
     containers:
       processor:
-        image: ghcr.io/streamx-com/streamx-blueprints/optimized-images-generator:3.0.16-native
+        image: ghcr.io/streamx-com/streamx-blueprints/optimized-images-generator:3.0.18-native
         incoming:
           incoming-assets: {}
         outgoing:
@@ -30,7 +30,7 @@ descriptors:
         size: 5Gi
     containers:
       processor:
-        image: ghcr.io/streamx-com/streamx-blueprints/local-references-rewriter:3.0.16-native
+        image: ghcr.io/streamx-com/streamx-blueprints/local-references-rewriter:3.0.18-native
         incoming:
           incoming-pages: {}
           optimized-assets:
@@ -46,7 +46,7 @@ descriptors:
     type: processing
     containers:
       processor:
-        image: ghcr.io/streamx-com/streamx-blueprints/external-references-rewriter:3.0.16-native
+        image: ghcr.io/streamx-com/streamx-blueprints/external-references-rewriter:3.0.18-native
         incoming:
           incoming-resources: {}
         outgoing:
@@ -60,7 +60,7 @@ descriptors:
         size: 5Gi
     containers:
       processor:
-        image: ghcr.io/streamx-com/streamx-blueprints/resource-downloader:3.0.16-native
+        image: ghcr.io/streamx-com/streamx-blueprints/resource-downloader:3.0.18-native
         incoming:
           download-requests: {}
         outgoing:
@@ -77,7 +77,7 @@ descriptors:
         size: 5Gi
     containers:
       processor:
-        image: ghcr.io/streamx-com/streamx-blueprints/json-aggregator:3.0.16-native
+        image: ghcr.io/streamx-com/streamx-blueprints/json-aggregator:3.0.18-native
         incoming:
           data: {}
           multivalued-data: {}
@@ -98,7 +98,7 @@ descriptors:
     type: processing
     containers:
       processor:
-        image: ghcr.io/streamx-com/streamx-blueprints/event-converter:3.0.16-native
+        image: ghcr.io/streamx-com/streamx-blueprints/event-converter:3.0.18-native
         incoming:
           resources: {}
         outgoing:
@@ -111,7 +111,7 @@ descriptors:
         size: 5Gi
     containers:
       processor:
-        image: ghcr.io/streamx-com/streamx-blueprints/rendering-engine:3.0.16-native
+        image: ghcr.io/streamx-com/streamx-blueprints/rendering-engine:3.0.18-native
         incoming:
           data: {}
           renderers: {}
@@ -142,7 +142,7 @@ descriptors:
         size: 5Gi
     containers:
       processor:
-        image: ghcr.io/streamx-com/streamx-blueprints/composition-engine:3.0.16-native
+        image: ghcr.io/streamx-com/streamx-blueprints/composition-engine:3.0.18-native
         incoming:
           layouts: {}
           compositions: {}
@@ -168,7 +168,7 @@ descriptors:
         size: 5Gi
     containers:
       processor:
-        image: ghcr.io/streamx-com/streamx-blueprints/data-collector:3.0.16-native
+        image: ghcr.io/streamx-com/streamx-blueprints/data-collector:3.0.18-native
         incoming:
           data: {}
         outgoing:
@@ -188,7 +188,7 @@ descriptors:
         size: 5Gi
     containers:
       processor:
-        image: ghcr.io/streamx-com/streamx-blueprints/sitemap-generator:3.0.16-native
+        image: ghcr.io/streamx-com/streamx-blueprints/sitemap-generator:3.0.18-native
         incoming:
           incoming-pages: {}
         outgoing:
@@ -204,7 +204,7 @@ descriptors:
     type: processing
     containers:
       processor:
-        image: ghcr.io/streamx-com/streamx-blueprints/indexable-resources-producer:3.0.16-native
+        image: ghcr.io/streamx-com/streamx-blueprints/indexable-resources-producer:3.0.18-native
         incoming:
           pages: {}
           fragments: {}
@@ -223,7 +223,7 @@ descriptors:
         persistent: true
     containers:
       sink:
-        image: ghcr.io/streamx-com/streamx-blueprints/opensearch-sink:3.0.16-native
+        image: ghcr.io/streamx-com/streamx-blueprints/opensearch-sink:3.0.18-native
         incoming:
           indexable-resources:
             initState: delta
@@ -260,7 +260,7 @@ descriptors:
         persistent: true
     containers:
       sink:
-        image: ghcr.io/streamx-com/streamx-blueprints/web-server-sink:3.0.16-native
+        image: ghcr.io/streamx-com/streamx-blueprints/web-server-sink:3.0.18-native
         incoming:
           resources:
             initState: delta
@@ -276,6 +276,31 @@ descriptors:
           - 8084:80
         volumes:
           - repository-volume:/usr/share/nginx/html
+
+  openai-rag-sink:
+    type: edge
+    volumes:
+      pgvolume:
+        size: 20Gi
+        persistent: true
+    containers:
+      sink:
+        image: ghcr.io/streamx-hub/streamx-rag-service:1.0.1-jvm
+        incoming:
+          resources:
+            initState: delta
+        environment:
+          STREAMX_POSTGRES_URL: jdbc:postgresql://${STREAMX_SERVICE_ID}.postgres:5432/ragdb
+        servicePorts:
+          - 8085:8080
+      postgres:
+        image: pgvector/pgvector:pg17
+        servicePorts:
+          - 5432:5432
+        environment:
+          PGDATA: /data/rag-postgres/pgdata
+        volumes:
+          - pgvolume:/data/rag-postgres
 
 networking:
   httpRoutes:
@@ -304,6 +329,15 @@ networking:
           backendRefs:
             - name: edge/web-server-sink
               port: 8084
+    openai-rag-route:
+      rules:
+        - matches:
+            - path:
+                type: PathPrefix
+                value: /api
+          backendRefs:
+            - name: edge/openai-rag-sink
+              port: 8085
 sources:
   github:
     outgoing:
@@ -343,6 +377,10 @@ sources:
         produces:
           - com.streamx.blueprints.composition.published.v1
           - com.streamx.blueprints.composition.unpublished.v1
+      - ref: inbox.download-requests
+        produces:
+          - com.streamx.blueprints.download.schedule.v1
+          - com.streamx.blueprints.download.unschedule.v1
   pim:
     outgoing:
       - ref: inbox.data
@@ -420,6 +458,17 @@ processing:
           relayed-events:
             ref: relay.fragments
 
+  data-relay:
+    descriptor: relay
+    containers:
+      service:
+        incoming:
+          events:
+            ref: relay.aggregated-data
+        outgoing:
+          relayed-events:
+            ref: outbox.data
+
   outbox-fragments-relay:
     descriptor: relay
     containers:
@@ -430,6 +479,17 @@ processing:
         outgoing:
           relayed-events:
             ref: outbox.fragments
+
+  download-requests-relay:
+    descriptor: relay
+    containers:
+      service:
+        incoming:
+          events:
+            ref: inbox.download-requests
+        outgoing:
+          relayed-events:
+            ref: relay.download-requests
 
   optimized-images-generator:
     descriptor: optimized-images-generator
@@ -668,3 +728,24 @@ edge:
         volumesFrom:
           configs:
             - nginx_conf/nginx.conf:/etc/nginx/conf.d/default.conf
+
+  openai-rag-sink:
+    descriptor: openai-rag-sink
+    containers:
+      sink:
+        incoming:
+          resources:
+            ref: outbox.data
+        environmentFrom:
+          secrets:
+            - encrypted/open-ai-rag.properties
+            - encrypted/open-ai-rag-postgres-creds.properties
+          configs:
+            - open-ai-rag.properties
+      postgres:
+        environmentFrom:
+          secrets:
+            - encrypted/postgres.properties
+        volumesFrom:
+          configs:
+            - postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
