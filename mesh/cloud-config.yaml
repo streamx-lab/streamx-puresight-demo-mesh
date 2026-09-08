@@ -32,17 +32,17 @@ global:
 clusters:
   eu-west-gra-processing:
     enabled: true
-    overlays:
+    overlay:
       properties: {}
   eu-west-gra-edge:
     enabled: true
-    overlays:
+    overlay:
       properties: {}
   ca-east-bhs-edge:
     enabled: true
-    overlays:
+    overlay:
       properties: {}
   us-east-chi-edge:
     enabled: true
-    overlays:
+    overlay:
       properties: {}
